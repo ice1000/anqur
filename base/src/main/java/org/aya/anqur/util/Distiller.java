@@ -15,7 +15,7 @@ public interface Distiller {
   @FunctionalInterface
   interface PP<E> extends BiFunction<E, Prec, Doc> {}
   enum Prec {
-    Free, IOp, Cod, AppHead, AppSpine, ProjHead
+    Free, Cod, AppHead, AppSpine, ProjHead
   }
   static @NotNull Doc expr(@NotNull Expr expr, Prec envPrec) {
     return switch (expr) {
