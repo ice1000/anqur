@@ -1,6 +1,5 @@
 package org.aya.anqur.tyck;
 
-import kala.collection.immutable.ImmutableSeq;
 import org.aya.anqur.syntax.Term;
 import org.aya.anqur.util.LocalVar;
 import org.jetbrains.annotations.NotNull;
@@ -31,10 +30,6 @@ public class Unifier {
     if (!happy && data == null)
       data = new FailureData(l, r);
     return happy;
-  }
-
-  private boolean unifySeq(@NotNull ImmutableSeq<Term> l, @NotNull ImmutableSeq<Term> r) {
-    return l.zipView(r).allMatch(p -> untyped(p._1, p._2));
   }
 
   private boolean eta(@NotNull Term r, Term.Lam lam) {

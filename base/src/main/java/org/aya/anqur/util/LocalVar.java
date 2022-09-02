@@ -2,7 +2,7 @@ package org.aya.anqur.util;
 
 import org.jetbrains.annotations.NotNull;
 
-public record LocalVar(@NotNull String name) {
+public record LocalVar(@Override @NotNull String name) implements AnyVar {
   public @NotNull String toString() {
     return name;
   }

@@ -2,13 +2,14 @@ package org.aya.anqur.tyck;
 
 import kala.collection.mutable.MutableMap;
 import org.aya.anqur.syntax.Def;
+import org.aya.anqur.syntax.DefVar;
 import org.aya.anqur.syntax.Term;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.jetbrains.annotations.NotNull;
 
 public record Normalizer(
-  @NotNull MutableMap<LocalVar, Def<Term>> sigma,
+  @NotNull MutableMap<DefVar<?>, Def<Term>> sigma,
   @NotNull MutableMap<LocalVar, Term> rho
 ) {
   public static @NotNull Term rename(@NotNull Term term) {

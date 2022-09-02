@@ -7,6 +7,7 @@ import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import kala.tuple.Tuple;
 import org.aya.anqur.syntax.Def;
+import org.aya.anqur.syntax.DefVar;
 import org.aya.anqur.syntax.Expr;
 import org.aya.anqur.syntax.Term;
 import org.aya.anqur.util.LocalVar;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record Elaborator(
-  @NotNull MutableMap<LocalVar, Def<Term>> sigma,
+  @NotNull MutableMap<DefVar<?>, Def<Term>> sigma,
   @NotNull MutableMap<LocalVar, Term> gamma
 ) {
   @NotNull public Term normalize(@NotNull Term term) {
@@ -108,17 +109,18 @@ public record Elaborator(
   public Synth synth(Expr expr) {
     var synth = switch (expr) {
       case Expr.PrimTy u -> new Synth(new Term.UI(u.keyword()), Term.U);
-      case Expr.Resolved resolved -> {
-        var type = gamma.getOrNull(resolved.ref());
-        if (type != null) yield new Synth(new Term.Ref(resolved.ref()), type);
-        var def = sigma.get(resolved.ref());
-        var pi = Term.mkPi(def.telescope(), def.result());
-        yield switch (def) {
-          case Def.Fn<Term> fn -> new Synth(Normalizer.rename(Term.mkLam(
-            fn.telescope().view().map(Param::x), fn.body())), pi);
-          case Def.Print<Term> print -> throw new AssertionError("unreachable: " + print);
-        };
-      }
+      case Expr.Resolved resolved -> switch (resolved.ref()) {
+        case DefVar<?> defv -> {
+          var def = sigma.get(defv);
+          var pi = Term.mkPi(def.telescope(), def.result());
+          yield switch (def) {
+            case Def.Fn<Term> fn -> new Synth(Normalizer.rename(Term.mkLam(
+              fn.telescope().view().map(Param::x), fn.body())), pi);
+            case Def.Print<Term> print -> throw new AssertionError("unreachable: " + print);
+          };
+        }
+        case LocalVar loc -> new Synth(new Term.Ref(loc), gamma.get(loc));
+      };
       case Expr.Proj proj -> {
         var t = synth(proj.t());
         if (!(t.type instanceof Term.DT dt) || dt.isPi())
@@ -166,7 +168,7 @@ public record Elaborator(
       case Def.Fn<Expr> fn -> {
         var body = inherit(fn.body(), result);
         telescope.forEach(key -> gamma.remove(key.x()));
-        yield new Def.Fn<>(def.name(), telescope, result, body);
+        yield new Def.Fn<>((DefVar<Def.Fn<Term>>) def.name(), telescope, result, body);
       }
       case Def.Print<Expr> print -> {
         var body = inherit(print.body(), result);

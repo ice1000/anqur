@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.aya.anqur.parser.AnqurParser;
 import org.aya.anqur.syntax.Def;
+import org.aya.anqur.syntax.DefVar;
 import org.aya.anqur.syntax.Expr;
 import org.aya.anqur.syntax.Keyword;
 import org.aya.anqur.util.LocalVar;
@@ -54,7 +55,7 @@ public record Parser(@NotNull SourceFile source) {
         expr(def.expr(0)),
         expr(def.expr(1)));
       case AnqurParser.FnDeclContext def -> new Def.Fn<>(
-        new LocalVar(def.ID().getText()),
+        new DefVar<>(def.ID().getText()),
         Seq.wrapJava(def.param()).flatMap(this::param),
         expr(def.expr(0)),
         expr(def.expr(1)));

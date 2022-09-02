@@ -8,19 +8,20 @@ import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import org.aya.anqur.syntax.Def;
 import org.aya.anqur.syntax.Expr;
+import org.aya.anqur.util.AnyVar;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.aya.anqur.util.SPE;
 import org.aya.pretty.doc.Doc;
 import org.jetbrains.annotations.NotNull;
 
-public record Resolver(@NotNull MutableMap<String, LocalVar> env) {
+public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
   private @NotNull TeleCache mkCache(int initialCapacity) {
     return new TeleCache(this, MutableArrayList.create(initialCapacity), MutableArrayList.create(initialCapacity));
   }
 
-  private record TeleCache(Resolver ctx, MutableArrayList<LocalVar> recover, MutableArrayList<LocalVar> remove) {
-    private void add(@NotNull LocalVar var) {
+  private record TeleCache(Resolver ctx, MutableArrayList<AnyVar> recover, MutableArrayList<AnyVar> remove) {
+    private void add(@NotNull AnyVar var) {
       var put = ctx.put(var);
       if (put.isDefined()) recover.append(put.get());
       else remove.append(var);
@@ -70,7 +71,8 @@ public record Resolver(@NotNull MutableMap<String, LocalVar> env) {
       case Expr.Two two -> new Expr.Two(two.isApp(), two.pos(), expr(two.f()), expr(two.a()));
       case Expr.Lam lam -> new Expr.Lam(lam.pos(), lam.x(), bodied(lam.x(), lam.a()));
       case Expr.PrimTy primTy -> primTy;
-      case Expr.Hole hole -> new Expr.Hole(hole.pos(), env.valuesView().toImmutableSeq());
+      case Expr.Hole hole -> new Expr.Hole(hole.pos(),
+        env.valuesView().filterIsInstance(LocalVar.class).toImmutableSeq());
       case Expr.Unresolved unresolved -> env.getOption(unresolved.name())
         .map(x -> new Expr.Resolved(unresolved.pos(), x))
         .getOrThrow(() -> new SPE(unresolved.pos(), Doc.english("Unresolved: " + unresolved.name())));
@@ -86,7 +88,7 @@ public record Resolver(@NotNull MutableMap<String, LocalVar> env) {
     return e;
   }
 
-  private @NotNull Option<LocalVar> put(LocalVar x) {
+  private @NotNull Option<AnyVar> put(AnyVar x) {
     return env.put(x.name(), x);
   }
 }
