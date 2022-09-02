@@ -4,7 +4,9 @@ program : decl+;
 decl
  : 'def' ID param* ':' expr ARROW2 expr # fnDecl
  | 'print' param* ':' expr ARROW2 expr # printDecl
+ | 'data' ID param* ':' expr consDecl* # dataDecl
  ;
+consDecl : '|' ID param*;
 param : '(' ID+ ':' expr ')';
 expr
  // Elimination lures
