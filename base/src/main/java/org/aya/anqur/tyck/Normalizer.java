@@ -9,7 +9,7 @@ import org.aya.anqur.util.Param;
 import org.jetbrains.annotations.NotNull;
 
 public record Normalizer(
-  @NotNull MutableMap<DefVar<?>, Def<Term>> sigma,
+  @NotNull MutableMap<DefVar<?>, Def> sigma,
   @NotNull MutableMap<LocalVar, Term> rho
 ) {
   public static @NotNull Term rename(@NotNull Term term) {
@@ -46,7 +46,7 @@ public record Normalizer(
       }
       case Term.FnCall call -> {
         var prefn = sigma.getOption(call.fn());
-        if (!(prefn.getOrNull() instanceof Def.Fn<Term> fn)) throw new IllegalArgumentException("unreachable");
+        if (!(prefn.getOrNull() instanceof Def.Fn fn)) throw new IllegalArgumentException("unreachable");
         fn.telescope().zip(call.args()).forEach(zip -> rho.put(zip._1.x(), term(zip._2)));
         yield term(fn.body());
       }

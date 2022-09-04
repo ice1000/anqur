@@ -6,10 +6,7 @@ import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import kala.tuple.Tuple;
-import org.aya.anqur.syntax.Def;
-import org.aya.anqur.syntax.DefVar;
-import org.aya.anqur.syntax.Expr;
-import org.aya.anqur.syntax.Term;
+import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.aya.anqur.util.SPE;
@@ -22,7 +19,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record Elaborator(
-  @NotNull MutableMap<DefVar<?>, Def<Term>> sigma,
+  @NotNull MutableMap<DefVar<?>, Def> sigma,
   @NotNull MutableMap<LocalVar, Term> gamma
 ) {
   @NotNull public Term normalize(@NotNull Term term) {
@@ -114,14 +111,14 @@ public record Elaborator(
           var def = sigma.get(defv);
           var pi = Term.mkPi(def.telescope(), def.result());
           yield switch (def) {
-            case Def.Fn<Term> fn -> new Synth(Normalizer.rename(Term.mkLam(
+            case Def.Fn fn -> new Synth(Normalizer.rename(Term.mkLam(
               fn.teleVars(), fn.body())), pi);
-            case Def.Print<Term> print -> throw new AssertionError("unreachable: " + print);
-            case Def.Cons<Term> cons -> new Synth(Normalizer.rename(Term.mkLam(
+            case Def.Print print -> throw new AssertionError("unreachable: " + print);
+            case Def.Cons cons -> new Synth(Normalizer.rename(Term.mkLam(
               cons.teleVars(), new Term.ConCall(cons.name(),
                 cons.tele().map(x -> new Term.Ref(x.x())),
                 cons.owner().teleRefs().toImmutableSeq()))), pi);
-            case Def.Data<Term> data -> new Synth(Normalizer.rename(Term.mkLam(
+            case Def.Data data -> new Synth(Normalizer.rename(Term.mkLam(
               data.teleVars(), new Term.DataCall(data.name(), data.teleRefs().toImmutableSeq()))), pi);
           };
         }
@@ -167,28 +164,29 @@ public record Elaborator(
     return ok;
   }
 
-  public Def<Term> def(Def<Expr> def) {
-    var telescope = telescope(def);
-    var result = inherit(def.result(), Term.U);
+  public @NotNull Def def(@NotNull Decl def) {
+    var telescope = telescope(def.tele());
     return switch (def) {
-      case Def.Fn<Expr> fn -> {
+      case Decl.Fn fn -> {
+        var result = inherit(fn.result(), Term.U);
         var body = inherit(fn.body(), result);
         telescope.forEach(key -> gamma.remove(key.x()));
-        yield new Def.Fn<>((DefVar<Def.Fn<Term>>) def.name(), telescope, result, body);
+        yield new Def.Fn(fn.name(), telescope, result, body);
       }
-      case Def.Print<Expr> print -> {
+      case Decl.Print print -> {
+        var result = inherit(print.result(), Term.U);
         var body = inherit(print.body(), result);
         telescope.forEach(key -> gamma.remove(key.x()));
-        yield new Def.Print<>(telescope, result, body);
+        yield new Def.Print(telescope, result, body);
       }
-      case Def.Cons<Expr> cons -> null;
-      case Def.Data<Expr> data -> null;
+      case Decl.Cons cons -> null;
+      case Decl.Data data -> null;
     };
   }
 
-  private @NotNull ImmutableSeq<Param<Term>> telescope(Def<Expr> def) {
-    var telescope = MutableArrayList.<Param<Term>>create(def.telescope().size());
-    for (var param : def.telescope()) {
+  private @NotNull ImmutableSeq<Param<Term>> telescope(Decl.Tele tele) {
+    var telescope = MutableArrayList.<Param<Term>>create(tele.scope().size());
+    for (var param : tele.scope()) {
       var ty = inherit(param.type(), Term.U);
       telescope.append(new Param<>(param.x(), ty));
       gamma.put(param.x(), ty);

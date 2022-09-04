@@ -1,12 +1,11 @@
 package org.aya.anqur.tyck;
 
-import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableMap;
 import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
-import org.aya.anqur.syntax.Def;
+import org.aya.anqur.syntax.Decl;
 import org.aya.anqur.syntax.Expr;
 import org.aya.anqur.util.AnyVar;
 import org.aya.anqur.util.LocalVar;
@@ -37,40 +36,47 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
     return new Param<>(param.x(), expr(param.type()));
   }
 
-  public @NotNull Def<Expr> def(@NotNull Def<Expr> def) {
-    var tele = tele(def);
-    var result = expr(def.result());
+  public @NotNull Decl def(@NotNull Decl def) {
     return switch (def) {
-      case Def.Fn<Expr> fn -> {
+      case Decl.Fn fn -> {
+        var tele = tele(def);
         put(fn.name());
+        var result = expr(fn.result());
         var body = expr(fn.body());
         tele._2.purge();
-        yield new Def.Fn<>(fn.name(), tele._1, result, body);
+        yield new Decl.Fn(fn.name(), tele._1, result, body);
       }
-      case Def.Print<Expr> print -> {
+      case Decl.Print print -> {
+        var tele = tele(def);
         var body = expr(print.body());
+        var result = expr(print.result());
         tele._2.purge();
-        yield new Def.Print<>(tele._1, result, body);
+        yield new Decl.Print(tele._1, result, body);
       }
-      case Def.Cons<Expr> cons -> {
+      case Decl.Cons cons -> cons(cons);
+      case Decl.Data data -> {
+        var tele = tele(def);
         tele._2.purge();
-        yield new Def.Cons<>(cons.name(), cons.owner(), tele._1);
-      }
-      case Def.Data<Expr> data -> {
-        tele._2.purge();
-        yield new Def.Data<>(data.name(), tele._1, result, data.cons());
+        yield new Decl.Data(data.name(), tele._1, data.cons().map(this::cons));
       }
     };
   }
 
-  @NotNull private Tuple2<ImmutableSeq<Param<Expr>>, TeleCache> tele(Def<Expr> def) {
-    var telescope = MutableArrayList.<Param<Expr>>create(def.telescope().size());
-    var cache = mkCache(def.telescope().size());
-    for (var param : def.telescope()) {
+  private @NotNull Decl.Cons cons(Decl.Cons cons) {
+    var tele = tele(cons);
+    tele._2.purge();
+    return new Decl.Cons(cons.name(), tele._1);
+  }
+
+  @NotNull private Tuple2<Decl.Tele, TeleCache> tele(Decl def) {
+    var size = def.tele().scope().size();
+    var telescope = MutableArrayList.<Param<Expr>>create(size);
+    var cache = mkCache(size);
+    for (var param : def.tele().scope()) {
       telescope.append(new Param<>(param.x(), expr(param.type())));
       cache.add(param.x());
     }
-    return Tuple.of(telescope.toImmutableArray(), cache);
+    return Tuple.of(new Decl.Tele(telescope.toImmutableArray()), cache);
   }
 
   public @NotNull Expr expr(@NotNull Expr expr) {

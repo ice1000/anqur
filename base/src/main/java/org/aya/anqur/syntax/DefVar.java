@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * because we do not store concrete defs in {@link DefVar}. In case we do,
  * we have to make ASTs <strong>mutable</strong> if we want to mutate them.
  */
-public final class DefVar<D extends Def<Term>> implements AnyVar {
+public final class DefVar<D extends Def> implements AnyVar {
   public D core;
   public final @NotNull String name;
 

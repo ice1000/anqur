@@ -7,9 +7,8 @@ import org.antlr.v4.runtime.*;
 import org.aya.anqur.parser.AnqurLexer;
 import org.aya.anqur.parser.AnqurParser;
 import org.aya.anqur.prelude.GeneratedVersion;
+import org.aya.anqur.syntax.Decl;
 import org.aya.anqur.syntax.Def;
-import org.aya.anqur.syntax.Expr;
-import org.aya.anqur.syntax.Term;
 import org.aya.anqur.tyck.Elaborator;
 import org.aya.anqur.tyck.Resolver;
 import org.aya.util.error.SourceFile;
@@ -71,7 +70,7 @@ public class CliMain implements Callable<Integer> {
     }
   }
 
-  public static @NotNull ImmutableSeq<Def<Expr>> def(String s) {
+  public static @NotNull ImmutableSeq<Decl> def(String s) {
     var decls = ImmutableSeq.from(parser(s).program().decl());
     var edj = new Resolver(MutableMap.create());
     return decls.map(d -> edj.def(new Parser(new SourceFile("<input>", Option.none(), s)).def(d)));
@@ -82,7 +81,7 @@ public class CliMain implements Callable<Integer> {
     var akJr = andrasKovacs();
     for (var def : artifact) {
       var tycked = akJr.def(def);
-      if (tycked instanceof Def.Print<Term> print) {
+      if (tycked instanceof Def.Print print) {
         System.out.println(print.body().toDoc().commonRender());
       } else {
         akJr.sigma().put(tycked.name(), tycked);

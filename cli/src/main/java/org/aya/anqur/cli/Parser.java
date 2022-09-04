@@ -6,10 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.aya.anqur.parser.AnqurParser;
-import org.aya.anqur.syntax.Def;
-import org.aya.anqur.syntax.DefVar;
-import org.aya.anqur.syntax.Expr;
-import org.aya.anqur.syntax.Keyword;
+import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.aya.repl.antlr.AntlrUtil;
@@ -48,15 +45,15 @@ public record Parser(@NotNull SourceFile source) {
   }
 
   /*package*/
-  @NotNull Def<Expr> def(@NotNull AnqurParser.DeclContext decl) {
+  @NotNull Decl def(@NotNull AnqurParser.DeclContext decl) {
     return switch (decl) {
-      case AnqurParser.PrintDeclContext def -> new Def.Print<>(
-        Seq.wrapJava(def.param()).flatMap(this::param),
+      case AnqurParser.PrintDeclContext def -> new Decl.Print(
+        new Decl.Tele(Seq.wrapJava(def.param()).flatMap(this::param)),
         expr(def.expr(0)),
         expr(def.expr(1)));
-      case AnqurParser.FnDeclContext def -> new Def.Fn<>(
+      case AnqurParser.FnDeclContext def -> new Decl.Fn(
         new DefVar<>(def.ID().getText()),
-        Seq.wrapJava(def.param()).flatMap(this::param),
+        new Decl.Tele(Seq.wrapJava(def.param()).flatMap(this::param)),
         expr(def.expr(0)),
         expr(def.expr(1)));
       default -> throw new IllegalArgumentException("Unknown def: " + decl.getClass().getName());
