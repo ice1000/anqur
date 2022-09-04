@@ -4,9 +4,11 @@ import kala.collection.Seq;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.aya.anqur.parser.AnqurParser;
-import org.aya.anqur.syntax.*;
+import org.aya.anqur.syntax.Decl;
+import org.aya.anqur.syntax.DefVar;
+import org.aya.anqur.syntax.Expr;
+import org.aya.anqur.syntax.Keyword;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.aya.repl.antlr.AntlrUtil;
@@ -14,8 +16,6 @@ import org.aya.util.error.SourceFile;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public record Parser(@NotNull SourceFile source) {
   public @NotNull Expr expr(@NotNull AnqurParser.ExprContext expr) {
@@ -38,10 +38,6 @@ public record Parser(@NotNull SourceFile source) {
       case AnqurParser.SimpTupContext si -> new Expr.DT(false, sourcePosOf(si), param(si.expr(0)), expr(si.expr(1)));
       default -> throw new IllegalArgumentException("Unknown expr: " + expr.getClass().getName());
     };
-  }
-
-  @NotNull private ImmutableSeq<LocalVar> localVars(List<TerminalNode> ids) {
-    return Seq.wrapJava(ids).map(id -> new LocalVar(id.getText()));
   }
 
   /*package*/
