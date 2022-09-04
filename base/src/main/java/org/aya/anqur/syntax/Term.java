@@ -25,7 +25,10 @@ public sealed interface Term extends Docile {
   }
 
   record Ref(@NotNull LocalVar var) implements Term {}
-  record Call(@NotNull DefVar<Def.Fn<Term>> fn, @NotNull ImmutableSeq<Term> args) implements Term {}
+  record FnCall(@NotNull DefVar<Def.Fn<Term>> fn, @NotNull ImmutableSeq<Term> args) implements Term {}
+  record DataCall(@NotNull DefVar<Def.Data<Term>> fn, @NotNull ImmutableSeq<Term> args) implements Term {}
+  record ConCall(@NotNull DefVar<Def.Cons<Term>> fn, @NotNull ImmutableSeq<Term> args,
+                 @NotNull ImmutableSeq<Term> dataArgs) implements Term {}
   record Two(boolean isApp, @NotNull Term f, @NotNull Term a) implements Term {
     @Override public @NotNull Term proj(boolean isOne) {return isOne ? f : a;}
   }

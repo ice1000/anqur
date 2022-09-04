@@ -23,7 +23,7 @@ public class Unifier {
       case Term.Proj lproj && r instanceof Term.Proj rproj ->
         lproj.isOne() == rproj.isOne() && untyped(lproj.t(), rproj.t());
       case Term.UI lu && r instanceof Term.UI ru -> lu.keyword() == ru.keyword();
-      case Term.Call lcall && r instanceof Term.Call rcall -> lcall.fn() == rcall.fn()
+      case Term.FnCall lcall && r instanceof Term.FnCall rcall -> lcall.fn() == rcall.fn()
         && lcall.args().sameElements(rcall.args(), true);
       default -> false;
     };

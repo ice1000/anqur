@@ -52,6 +52,8 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
         tele._2.purge();
         yield new Def.Print<>(tele._1, result, body);
       }
+      case Def.Cons<Expr> cons -> null;
+      case Def.Data<Expr> data -> null;
     };
   }
 

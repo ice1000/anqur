@@ -1,6 +1,8 @@
 package org.aya.anqur.util;
 
 import kala.collection.Seq;
+import kala.collection.SeqView;
+import org.aya.anqur.syntax.DefVar;
 import org.aya.anqur.syntax.Expr;
 import org.aya.anqur.syntax.Term;
 import org.aya.pretty.doc.Doc;
@@ -66,11 +68,14 @@ public interface Distiller {
       }
       case Term.Two two /*&& !two.isApp()*/ -> Doc.wrap("<<", ">>",
         Doc.commaList(Seq.of(term(two.f(), Free), term(two.a(), Free))));
-      case Term.Call call -> {
-        var doc = Doc.sep(call.args().view()
-          .map(t -> term(t, AppSpine)).prepended(Doc.plain(call.fn().name())));
-        yield envPrec.ordinal() > AppHead.ordinal() ? Doc.parened(doc) : doc;
-      }
+      case Term.FnCall fnCall -> call(envPrec, fnCall.args().view(), fnCall.fn());
+      case Term.ConCall conCall -> call(envPrec, conCall.args().view(), conCall.fn());
+      case Term.DataCall dataCall -> call(envPrec, dataCall.args().view(), dataCall.fn());
     };
+  }
+  private static @NotNull Doc call(Prec envPrec, SeqView<Term> args, DefVar<?> name) {
+    var doc = Doc.sep(args
+      .map(t -> term(t, AppSpine)).prepended(Doc.plain(name.name)));
+    return envPrec.ordinal() > AppHead.ordinal() ? Doc.parened(doc) : doc;
   }
 }

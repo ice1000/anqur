@@ -115,8 +115,14 @@ public record Elaborator(
           var pi = Term.mkPi(def.telescope(), def.result());
           yield switch (def) {
             case Def.Fn<Term> fn -> new Synth(Normalizer.rename(Term.mkLam(
-              fn.telescope().view().map(Param::x), fn.body())), pi);
+              fn.teleVars(), fn.body())), pi);
             case Def.Print<Term> print -> throw new AssertionError("unreachable: " + print);
+            case Def.Cons<Term> cons -> new Synth(Normalizer.rename(Term.mkLam(
+              cons.teleVars(), new Term.ConCall(cons.name(),
+                cons.tele().map(x -> new Term.Ref(x.x())),
+                cons.owner().teleRefs().toImmutableSeq()))), pi);
+            case Def.Data<Term> data -> new Synth(Normalizer.rename(Term.mkLam(
+              data.teleVars(), new Term.DataCall(data.name(), data.teleRefs().toImmutableSeq()))), pi);
           };
         }
         case LocalVar loc -> new Synth(new Term.Ref(loc), gamma.get(loc));
@@ -175,6 +181,8 @@ public record Elaborator(
         telescope.forEach(key -> gamma.remove(key.x()));
         yield new Def.Print<>(telescope, result, body);
       }
+      case Def.Cons<Expr> cons -> null;
+      case Def.Data<Expr> data -> null;
     };
   }
 

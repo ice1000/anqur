@@ -44,12 +44,15 @@ public record Normalizer(
         assert !tup.isApp();
         yield proj.isOne() ? tup.f() : tup.a();
       }
-      case Term.Call call -> {
+      case Term.FnCall call -> {
         var prefn = sigma.getOption(call.fn());
-        if (!(prefn.getOrNull() instanceof Def.Fn<Term> fn)) yield call;
+        if (!(prefn.getOrNull() instanceof Def.Fn<Term> fn)) throw new IllegalArgumentException("unreachable");
         fn.telescope().zip(call.args()).forEach(zip -> rho.put(zip._1.x(), term(zip._2)));
         yield term(fn.body());
       }
+      case Term.ConCall conCall -> new Term.ConCall(conCall.fn(),
+        conCall.args().map(this::term), conCall.dataArgs().map(this::term));
+      case Term.DataCall dataCall -> new Term.DataCall(dataCall.fn(), dataCall.args().map(this::term));
     };
   }
 
@@ -69,7 +72,10 @@ public record Normalizer(
         }
         case Term.Two two -> new Term.Two(two.isApp(), term(two.f()), term(two.a()));
         case Term.Proj proj -> new Term.Proj(term(proj.t()), proj.isOne());
-        case Term.Call call -> new Term.Call(call.fn(), call.args().map(this::term));
+        case Term.FnCall fnCall -> new Term.FnCall(fnCall.fn(), fnCall.args().map(this::term));
+        case Term.ConCall conCall ->
+          new Term.ConCall(conCall.fn(), conCall.args().map(this::term), conCall.dataArgs().map(this::term));
+        case Term.DataCall dataCall -> new Term.DataCall(dataCall.fn(), dataCall.args().map(this::term));
       };
     }
 
