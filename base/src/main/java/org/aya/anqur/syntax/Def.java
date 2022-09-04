@@ -31,17 +31,20 @@ public sealed interface Def {
   record Data(
     @Override @NotNull DefVar<Data> name,
     @Override @NotNull ImmutableSeq<Param<Term>> telescope,
-    @NotNull Term result,
     @NotNull ImmutableSeq<Cons> cons
   ) implements Def {
     public Data {
       name.core = this;
     }
+
+    @Override public @NotNull Term result() {
+      return Term.U;
+    }
   }
 
   record Cons(
     @Override @NotNull DefVar<Cons> name,
-    @NotNull Data owner,
+    @NotNull DefVar<Data> owner,
     @Override @NotNull ImmutableSeq<Param<Term>> tele
   ) implements Def {
     public Cons {
@@ -49,13 +52,13 @@ public sealed interface Def {
     }
 
     @Override public @NotNull ImmutableSeq<Param<Term>> telescope() {
-      return tele.view().concat(owner.telescope().view()).toImmutableSeq();
+      return tele.view().concat(owner.core.telescope().view()).toImmutableSeq();
     }
 
     /** Invoke only when T = Term */
     @Override public @NotNull Term result() {
       // TODO: indexed types
-      return new Term.DataCall(owner.name, owner.teleRefs().toImmutableSeq());
+      return new Term.DataCall(owner, owner.core.teleRefs().toImmutableSeq());
     }
   }
 

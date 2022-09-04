@@ -117,7 +117,7 @@ public record Elaborator(
             case Def.Cons cons -> new Synth(Normalizer.rename(Term.mkLam(
               cons.teleVars(), new Term.ConCall(cons.name(),
                 cons.tele().map(x -> new Term.Ref(x.x())),
-                cons.owner().teleRefs().toImmutableSeq()))), pi);
+                cons.owner().core.teleRefs().toImmutableSeq()))), pi);
             case Def.Data data -> new Synth(Normalizer.rename(Term.mkLam(
               data.teleVars(), new Term.DataCall(data.name(), data.teleRefs().toImmutableSeq()))), pi);
           };
@@ -180,8 +180,15 @@ public record Elaborator(
         yield new Def.Print(telescope, result, body);
       }
       case Decl.Cons cons -> throw new IllegalArgumentException("unreachable");
-      case Decl.Data data -> null;
+      case Decl.Data data -> {
+        var ref = data.name();
+        yield new Def.Data(ref, telescope, data.cons().map(c -> cons(ref, c)));
+      }
     };
+  }
+
+  private Def.Cons cons(DefVar<Def.Data> ref, Decl.Cons c) {
+    return new Def.Cons(c.name(), ref, telescope(c.tele()));
   }
 
   private @NotNull ImmutableSeq<Param<Term>> telescope(Decl.Tele tele) {
