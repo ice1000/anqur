@@ -179,7 +179,7 @@ public record Elaborator(
         telescope.forEach(key -> gamma.remove(key.x()));
         yield new Def.Print(telescope, result, body);
       }
-      case Decl.Cons cons -> null;
+      case Decl.Cons cons -> throw new IllegalArgumentException("unreachable");
       case Decl.Data data -> null;
     };
   }

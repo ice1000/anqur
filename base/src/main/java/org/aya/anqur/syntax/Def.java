@@ -13,8 +13,8 @@ public sealed interface Def {
   default @NotNull SeqView<LocalVar> teleVars() {
     return telescope().view().map(Param::x);
   }
-  default @NotNull SeqView<org.aya.anqur.syntax.Term> teleRefs() {
-    return teleVars().map(org.aya.anqur.syntax.Term.Ref::new);
+  default @NotNull SeqView<Term> teleRefs() {
+    return teleVars().map(Term.Ref::new);
   }
 
   record Fn(
@@ -22,22 +22,33 @@ public sealed interface Def {
     @Override @NotNull ImmutableSeq<Param<Term>> telescope,
     @NotNull Term result,
     @NotNull Term body
-  ) implements Def {}
+  ) implements Def {
+    public Fn {
+      name.core = this;
+    }
+  }
 
   record Data(
     @Override @NotNull DefVar<Data> name,
     @Override @NotNull ImmutableSeq<Param<Term>> telescope,
     @NotNull Term result,
     @NotNull ImmutableSeq<Cons> cons
-  ) implements Def {}
+  ) implements Def {
+    public Data {
+      name.core = this;
+    }
+  }
 
   record Cons(
     @Override @NotNull DefVar<Cons> name,
     @NotNull Data owner,
     @Override @NotNull ImmutableSeq<Param<Term>> tele
   ) implements Def {
-    @Override
-    public @NotNull ImmutableSeq<Param<Term>> telescope() {
+    public Cons {
+      name.core = this;
+    }
+
+    @Override public @NotNull ImmutableSeq<Param<Term>> telescope() {
       return tele.view().concat(owner.telescope().view()).toImmutableSeq();
     }
 
