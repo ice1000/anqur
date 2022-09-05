@@ -52,8 +52,18 @@ public record Parser(@NotNull SourceFile source) {
         new Decl.Tele(Seq.wrapJava(def.param()).flatMap(this::param)),
         expr(def.expr(0)),
         expr(def.expr(1)));
+      case AnqurParser.DataDeclContext def -> new Decl.Data(
+        new DefVar<>(def.ID().getText()),
+        new Decl.Tele(Seq.wrapJava(def.param()).flatMap(this::param)),
+        Seq.wrapJava(def.consDecl()).map(this::cons));
       default -> throw new IllegalArgumentException("Unknown def: " + decl.getClass().getName());
     };
+  }
+
+  private Decl.Cons cons(AnqurParser.ConsDeclContext consDeclContext) {
+    return new Decl.Cons(
+      new DefVar<>(consDeclContext.ID().getText()),
+      new Decl.Tele(Seq.wrapJava(consDeclContext.param()).flatMap(this::param)));
   }
 
   private Expr buildDT(boolean isPi, SourcePos pos, SeqView<Param<Expr>> params, Expr body) {
