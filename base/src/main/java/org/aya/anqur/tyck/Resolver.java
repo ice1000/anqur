@@ -57,6 +57,7 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
       case Decl.Data data -> {
         var tele = tele(def);
         tele._2.purge();
+        put(def.name());
         yield new Decl.Data(data.name(), tele._1, data.cons().map(this::cons));
       }
     };
@@ -65,6 +66,7 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
   private @NotNull Decl.Cons cons(Decl.Cons cons) {
     var tele = tele(cons);
     tele._2.purge();
+    put(cons.name());
     return new Decl.Cons(cons.name(), tele._1);
   }
 

@@ -1,5 +1,5 @@
 plugins { application }
-application.mainClass.set("org.aya.guest0x0.cli.CliMain")
+application.mainClass.set("org.aya.anqur.cli.CliMain")
 
 dependencies {
   val deps: java.util.Properties by rootProject.ext
