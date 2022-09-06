@@ -188,7 +188,9 @@ public record Elaborator(
   }
 
   private Def.Cons cons(DefVar<Def.Data> ref, Decl.Cons c) {
-    return new Def.Cons(c.name(), ref, telescope(c.tele()));
+    var cons = new Def.Cons(c.name(), ref, telescope(c.tele()));
+    sigma.put(c.name(), cons);
+    return cons;
   }
 
   private @NotNull ImmutableSeq<Param<Term>> telescope(Decl.Tele tele) {

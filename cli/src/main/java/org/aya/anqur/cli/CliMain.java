@@ -85,7 +85,7 @@ public class CliMain implements Callable<Integer> {
         System.out.println(print.body().toDoc().commonRender());
       } else {
         akJr.sigma().put(tycked.name(), tycked);
-        if (verbose) System.out.println(tycked.name());
+        if (verbose) System.out.println(tycked.name().name);
       }
     }
     return akJr;

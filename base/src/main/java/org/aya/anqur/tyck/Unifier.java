@@ -25,6 +25,11 @@ public class Unifier {
       case Term.UI lu && r instanceof Term.UI ru -> lu.keyword() == ru.keyword();
       case Term.FnCall lcall && r instanceof Term.FnCall rcall -> lcall.fn() == rcall.fn()
         && lcall.args().sameElements(rcall.args(), true);
+      case Term.DataCall lcall && r instanceof Term.DataCall rcall -> lcall.fn() == rcall.fn()
+        && lcall.args().sameElements(rcall.args(), true);
+      // We probably won't need to compare dataArgs cus the two sides of conversion should be of the same type
+      case Term.ConCall lcall && r instanceof Term.ConCall rcall -> lcall.fn() == rcall.fn()
+        && lcall.args().sameElements(rcall.args(), true);
       default -> false;
     };
     if (!happy && data == null)
