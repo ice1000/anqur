@@ -10,6 +10,8 @@
 
 This is a project evolved from [Guest0x0] with cubical features removed. It serves as a demo for elaboration of inductive types and indexed types.
 
+I will also be testing ideas on induction-recursion and induction-induction of simpler indexed types in this project.
+
 ## v0.2
 
 ![image](https://user-images.githubusercontent.com/16398479/188980798-baebf9ad-ebb0-444d-9f48-080920b3182a.png)
