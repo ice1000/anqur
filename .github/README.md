@@ -10,7 +10,13 @@
 
 This is a project evolved from [Guest0x0] with cubical features removed. It serves as a demo for elaboration of inductive types and indexed types.
 
+## v0.2
+
+![image](https://user-images.githubusercontent.com/16398479/188980798-baebf9ad-ebb0-444d-9f48-080920b3182a.png)
+
 ## v0.1
+
+![image](https://user-images.githubusercontent.com/16398479/188972426-80e0f1de-1da8-426e-b221-88cbd8ef16c7.png)
 
 Initial version with simplest parameterized inductive types:
 
