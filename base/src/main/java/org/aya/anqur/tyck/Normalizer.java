@@ -1,17 +1,12 @@
 package org.aya.anqur.tyck;
 
 import kala.collection.mutable.MutableMap;
-import org.aya.anqur.syntax.Def;
-import org.aya.anqur.syntax.DefVar;
 import org.aya.anqur.syntax.Term;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.jetbrains.annotations.NotNull;
 
-public record Normalizer(
-  @NotNull MutableMap<DefVar<?>, Def> sigma,
-  @NotNull MutableMap<LocalVar, Term> rho
-) {
+public record Normalizer(@NotNull MutableMap<LocalVar, Term> rho) {
   public static @NotNull Term rename(@NotNull Term term) {
     return new Renamer(MutableMap.create()).term(term);
   }
@@ -45,8 +40,8 @@ public record Normalizer(
         yield proj.isOne() ? tup.f() : tup.a();
       }
       case Term.FnCall call -> {
-        var prefn = sigma.getOption(call.fn());
-        if (!(prefn.getOrNull() instanceof Def.Fn fn)) throw new IllegalArgumentException("unreachable");
+        // TODO: fn can be null
+        var fn = call.fn().core;
         fn.telescope().zip(call.args()).forEach(zip -> rho.put(zip._1.x(), term(zip._2)));
         yield term(fn.body());
       }

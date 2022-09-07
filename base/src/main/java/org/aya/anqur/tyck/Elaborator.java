@@ -23,11 +23,7 @@ public record Elaborator(
   @NotNull MutableMap<LocalVar, Term> gamma
 ) {
   @NotNull public Term normalize(@NotNull Term term) {
-    return normalizer().term(term);
-  }
-
-  private @NotNull Normalizer normalizer() {
-    return new Normalizer(sigma, MutableMap.create());
+    return term.subst(MutableMap.create());
   }
 
   public record Synth(@NotNull Term wellTyped, @NotNull Term type) {}
@@ -73,8 +69,8 @@ public record Elaborator(
     };
   }
 
-  private Normalizer normalizer(Seq<LocalVar> from, Seq<LocalVar> to) {
-    return new Normalizer(sigma, MutableMap.from(
+  static Normalizer normalizer(Seq<LocalVar> from, Seq<LocalVar> to) {
+    return new Normalizer(MutableMap.from(
       from.zipView(to).map(t -> Tuple.of(t._1, new Term.Ref(t._2)))
     ));
   }
@@ -108,7 +104,15 @@ public record Elaborator(
       case Expr.PrimTy u -> new Synth(new Term.UI(u.keyword()), Term.U);
       case Expr.Resolved resolved -> switch (resolved.ref()) {
         case DefVar<?> defv -> {
-          var def = sigma.get(defv);
+          var def = defv.core;
+          if (def == null) {
+            // TODO: for now, data is the only thing that can recurse
+            var data = defv.signature;
+            var pi = Term.mkPi(data.telescope(), data.result());
+            yield new Synth(Normalizer.rename(Term.mkLam(
+              data.teleVars(), new Term.DataCall((DefVar<Def.Data>) defv,
+                data.teleRefs().toImmutableSeq()))), pi);
+          }
           var pi = Term.mkPi(def.telescope(), def.result());
           yield switch (def) {
             case Def.Fn fn -> new Synth(Normalizer.rename(Term.mkLam(
@@ -182,15 +186,14 @@ public record Elaborator(
       case Decl.Cons cons -> throw new IllegalArgumentException("unreachable");
       case Decl.Data data -> {
         var ref = data.name();
+        ref.signature = new Def.Signature(telescope, Term.U);
         yield new Def.Data(ref, telescope, data.cons().map(c -> cons(ref, c)));
       }
     };
   }
 
   private Def.Cons cons(DefVar<Def.Data> ref, Decl.Cons c) {
-    var cons = new Def.Cons(c.name(), ref, telescope(c.tele()));
-    sigma.put(c.name(), cons);
-    return cons;
+    return new Def.Cons(c.name(), ref, telescope(c.tele()));
   }
 
   private @NotNull ImmutableSeq<Param<Term>> telescope(Decl.Tele tele) {

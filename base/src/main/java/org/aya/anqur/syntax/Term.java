@@ -19,7 +19,7 @@ public sealed interface Term extends Docile {
     return subst(MutableMap.of(x, t));
   }
   default @NotNull Term subst(@NotNull MutableMap<LocalVar, Term> map) {
-    return new Normalizer(MutableMap.create(), map).term(this);
+    return new Normalizer(map).term(this);
   }
 
   record Ref(@NotNull LocalVar var) implements Term {}

@@ -1,21 +1,11 @@
 package org.aya.anqur.syntax;
 
-import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface Def {
-  @NotNull ImmutableSeq<Param<Term>> telescope();
+public sealed interface Def extends FnLike {
   @NotNull DefVar<? extends Def> name();
-  @NotNull Term result();
-  default @NotNull SeqView<LocalVar> teleVars() {
-    return telescope().view().map(Param::x);
-  }
-  default @NotNull SeqView<Term> teleRefs() {
-    return teleVars().map(Term.Ref::new);
-  }
 
   record Fn(
     @Override @NotNull DefVar<Fn> name,
@@ -26,6 +16,12 @@ public sealed interface Def {
     public Fn {
       name.core = this;
     }
+  }
+
+  record Signature(
+    @Override @NotNull ImmutableSeq<Param<Term>> telescope,
+    @NotNull Term result
+  ) implements FnLike {
   }
 
   record Data(

@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class DefVar<D extends Def> implements AnyVar {
   public D core;
+  public Def.Signature signature;
   public final @NotNull String name;
 
   public DefVar(@NotNull String name) {
