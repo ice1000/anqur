@@ -1,5 +1,6 @@
 package org.aya.anqur.tyck;
 
+import kala.collection.immutable.ImmutableSeq;
 import org.aya.anqur.syntax.Term;
 import org.aya.anqur.util.LocalVar;
 import org.jetbrains.annotations.NotNull;
@@ -24,17 +25,21 @@ public class Unifier {
         lproj.isOne() == rproj.isOne() && untyped(lproj.t(), rproj.t());
       case Term.UI lu && r instanceof Term.UI ru -> lu.keyword() == ru.keyword();
       case Term.FnCall lcall && r instanceof Term.FnCall rcall -> lcall.fn() == rcall.fn()
-        && lcall.args().sameElements(rcall.args(), true);
+        && unifySeq(lcall.args(), rcall.args());
       case Term.DataCall lcall && r instanceof Term.DataCall rcall -> lcall.fn() == rcall.fn()
-        && lcall.args().sameElements(rcall.args(), true);
+        && unifySeq(lcall.args(), rcall.args());
       // We probably won't need to compare dataArgs cus the two sides of conversion should be of the same type
       case Term.ConCall lcall && r instanceof Term.ConCall rcall -> lcall.fn() == rcall.fn()
-        && lcall.args().sameElements(rcall.args(), true);
+        && unifySeq(lcall.args(), rcall.args());
       default -> false;
     };
     if (!happy && data == null)
       data = new FailureData(l, r);
     return happy;
+  }
+
+  private boolean unifySeq(@NotNull ImmutableSeq<Term> l, @NotNull ImmutableSeq<Term> r) {
+    return l.zipView(r).allMatch(p -> untyped(p._1, p._2));
   }
 
   private boolean eta(@NotNull Term r, Term.Lam lam) {

@@ -1,11 +1,9 @@
 package org.aya.anqur.tyck;
 
-import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
-import kala.tuple.Tuple;
 import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
@@ -69,23 +67,14 @@ public record Elaborator(
     };
   }
 
-  static Normalizer normalizer(Seq<LocalVar> from, Seq<LocalVar> to) {
-    return new Normalizer(MutableMap.from(
-      from.zipView(to).map(t -> Tuple.of(t._1, new Term.Ref(t._2)))
-    ));
-  }
-
-  private void unify(Term ty, Docile on, @NotNull Term actual, SourcePos pos, Doc prefix) {
-    unify(ty, actual, pos, u -> Doc.vcat(prefix, unifyDoc(ty, on, actual, u)));
-  }
-
   private void unify(Term ty, Docile on, @NotNull Term actual, SourcePos pos) {
     unify(ty, actual, pos, u -> unifyDoc(ty, on, actual, u));
   }
 
   private static void unify(Term ty, Term actual, SourcePos pos, Function<Unifier, Doc> message) {
     var unifier = new Unifier();
-    if (!unifier.untyped(actual, ty)) throw new SPE(pos, message.apply(unifier));
+    if (!unifier.untyped(actual, ty))
+      throw new SPE(pos, message.apply(unifier));
   }
 
   private static @NotNull Doc unifyDoc(Docile ty, Docile on, Docile actual, Unifier unifier) {

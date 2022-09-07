@@ -48,7 +48,7 @@ public sealed interface Def extends FnLike {
     }
 
     @Override public @NotNull ImmutableSeq<Param<Term>> telescope() {
-      return tele.view().concat(owner.core.telescope().view()).toImmutableSeq();
+      return owner.core.telescope().view().concat(tele.view()).toImmutableSeq();
     }
 
     /** Invoke only when T = Term */
