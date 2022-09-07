@@ -30,6 +30,26 @@ public class DeclsTest {
       """);
   }
 
+  @Test public void unitNatList() {
+    tyck("""
+      data Unit | unit
+      def unnit : Unit => unit
+      data Nat
+      | zero
+      | succ (n : Nat)
+
+      def two : Nat => succ (succ zero)
+      print : Nat => two
+
+      data List (A : U)
+      | nil
+      | cons (x : A) (xs : List A)
+
+      def lengthTwo (A : U) (a : A) : List A => cons A a (cons A a (nil A))
+      print : List Nat => lengthTwo Nat two
+      """);
+  }
+
   private static @NotNull Elaborator tyck(@Language("TEXT") String s) {
     return CliMain.tyck(s, false);
   }
