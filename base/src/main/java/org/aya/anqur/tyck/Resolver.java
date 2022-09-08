@@ -117,7 +117,7 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
     return new Pat.Clause<>(pats, body);
   }
 
-  public static @NotNull Pat pattern(@NotNull Pat.Unresolved u, @NotNull TeleCache cache) {
+  private static @NotNull Pat pattern(@NotNull Pat.Unresolved u, @NotNull TeleCache cache) {
     var var = cache.ctx.env.getOrNull(u.name());
     if (var == null && u.pats().isEmpty()) {
       var v = new LocalVar(u.name());
