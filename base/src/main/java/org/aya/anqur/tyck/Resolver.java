@@ -1,12 +1,12 @@
 package org.aya.anqur.tyck;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableMap;
 import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
-import org.aya.anqur.syntax.Decl;
-import org.aya.anqur.syntax.Expr;
+import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.AnyVar;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
@@ -107,5 +107,28 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
 
   private @NotNull Option<AnyVar> put(AnyVar x) {
     return env.put(x.name(), x);
+  }
+
+  public @NotNull Pat.Clause<Expr> clause(@NotNull ImmutableSeq<Pat.Unresolved> unsols, @NotNull Expr body) {
+    var tele = mkCache(16);
+    var pats = unsols.map(pat -> pattern(pat, tele));
+    body = expr(body);
+    tele.purge();
+    return new Pat.Clause<>(pats, body);
+  }
+
+  public static @NotNull Pat pattern(@NotNull Pat.Unresolved u, @NotNull TeleCache cache) {
+    var var = cache.ctx.env.getOrNull(u.name());
+    if (var == null && u.pats().isEmpty()) {
+      var v = new LocalVar(u.name());
+      cache.add(v);
+      return new Pat.Bind(v);
+    }
+    if (!(var instanceof DefVar<?> def)) throw new SPE(u.pos(), Doc.english("Not a def: " + u.name()));
+    if (!(def.core instanceof Def.Cons cons)) throw new SPE(u.pos(), Doc.english("Not a cons: " + def.name));
+    if (!cons.tele().sizeEquals(u.pats().size()))
+      throw new SPE(u.pos(), Doc.english("Wrong number of arguments: " + u.name()));
+    var pats = u.pats().map(p -> pattern(p, cache));
+    return new Pat.Con((DefVar<Def.Cons>) def, pats);
   }
 }

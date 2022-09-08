@@ -25,4 +25,8 @@ public final class DefVar<D extends Def> implements AnyVar {
   @Override public @NotNull String name() {
     return name;
   }
+
+  enum Kind {
+    FN, DATA
+  }
 }
