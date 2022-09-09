@@ -50,14 +50,18 @@ public record Parser(@NotNull SourceFile source) {
       case AnqurParser.FnDeclContext def -> new Decl.Fn(
         new DefVar<>(def.ID().getText()),
         new Decl.Tele(Seq.wrapJava(def.param()).flatMap(this::param)),
-        expr(def.expr(0)),
-        expr(def.expr(1)));
+        expr(def.expr()),
+        fnBody(def.fnBody()));
       case AnqurParser.DataDeclContext def -> new Decl.Data(
         new DefVar<>(def.ID().getText()),
         new Decl.Tele(Seq.wrapJava(def.param()).flatMap(this::param)),
         Seq.wrapJava(def.consDecl()).map(this::cons));
       default -> throw new IllegalArgumentException("Unknown def: " + decl.getClass().getName());
     };
+  }
+
+  private Expr fnBody(AnqurParser.FnBodyContext fnBody) {
+    return expr(fnBody.expr());
   }
 
   private Decl.Cons cons(AnqurParser.ConsDeclContext consDeclContext) {

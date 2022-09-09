@@ -2,10 +2,13 @@ grammar Anqur;
 
 program : decl+;
 decl
- : 'def' ID param* ':' expr ARROW2 expr # fnDecl
+ : 'def' ID param* ':' expr fnBody # fnDecl
  | 'print' param* ':' expr ARROW2 expr # printDecl
  | 'data' ID param* consDecl* # dataDecl
  ;
+fnBody : ARROW2 expr | clause*;
+pattern : ID | '(' ID pattern* ')';
+clause : '|' pattern+ ARROW2 expr;
 consDecl : '|' ID param*;
 param : '(' ID+ ':' expr ')';
 expr
