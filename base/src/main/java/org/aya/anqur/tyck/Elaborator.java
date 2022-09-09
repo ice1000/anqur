@@ -95,12 +95,11 @@ public record Elaborator(
         case DefVar<?> defv -> {
           var def = defv.core;
           if (def == null) {
-            // TODO: for now, data is the only thing that can recurse
-            var data = defv.signature;
-            var pi = Term.mkPi(data.telescope(), data.result());
+            var sig = defv.signature;
+            var pi = Term.mkPi(sig.telescope(), sig.result());
+            var call = mkCall(defv, sig);
             yield new Synth(Normalizer.rename(Term.mkLam(
-              data.teleVars(), new Term.DataCall((DefVar<Def.Data>) defv,
-                data.teleRefs().toImmutableSeq()))), pi);
+              sig.teleVars(), call)), pi);
           }
           var pi = Term.mkPi(def.telescope(), def.result());
           yield switch (def) {
@@ -150,6 +149,12 @@ public record Elaborator(
     return new Synth(synth.wellTyped, type);
   }
 
+  @SuppressWarnings("unchecked") private static Term mkCall(DefVar<?> defv, Def.Signature sig) {
+    return sig.isData() ? new Term.DataCall((DefVar<Def.Data>) defv,
+      sig.teleRefs().toImmutableSeq()) : new Term.FnCall((DefVar<Def.Fn>) defv,
+      sig.teleRefs().toImmutableSeq());
+  }
+
   private <T> T hof(@NotNull LocalVar x, @NotNull Term type, @NotNull Supplier<T> t) {
     gamma.put(x, type);
     var ok = t.get();
@@ -175,7 +180,7 @@ public record Elaborator(
       case Decl.Cons cons -> throw new IllegalArgumentException("unreachable");
       case Decl.Data data -> {
         var ref = data.name();
-        ref.signature = new Def.Signature(telescope, Term.U);
+        ref.signature = new Def.Signature(true, telescope, Term.U);
         yield new Def.Data(ref, telescope, data.cons().map(c -> cons(ref, c)));
       }
     };

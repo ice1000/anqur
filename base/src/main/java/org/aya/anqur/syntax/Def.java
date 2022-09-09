@@ -18,7 +18,13 @@ public sealed interface Def extends FnLike {
     }
   }
 
+  /**
+   * For (maybe mutually) recursive definitions, like types and functions
+   *
+   * @param isData it will be a function if false
+   */
   record Signature(
+    boolean isData,
     @Override @NotNull ImmutableSeq<Param<Term>> telescope,
     @NotNull Term result
   ) implements FnLike {
