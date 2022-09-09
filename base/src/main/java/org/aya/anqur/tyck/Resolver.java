@@ -120,17 +120,14 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
     return new Pat.Clause<>(pats, body);
   }
 
-  @SuppressWarnings("unchecked") private static @NotNull Pat pattern(@NotNull Pat.Unresolved u, @NotNull TeleCache cache) {
+  @SuppressWarnings("unchecked")
+  private static @NotNull Pat pattern(@NotNull Pat.Unresolved u, @NotNull TeleCache cache) {
     var var = cache.ctx.env.getOrNull(u.name());
-    if (var == null && u.pats().isEmpty()) {
+    if (var == null && u.pats().isEmpty() || !(var instanceof DefVar<?> def)) {
       var v = new LocalVar(u.name());
       cache.add(v);
       return new Pat.Bind(v);
     }
-    if (!(var instanceof DefVar<?> def)) throw new SPE(u.pos(), Doc.english("Not a def: " + u.name()));
-    if (!(def.core instanceof Def.Cons cons)) throw new SPE(u.pos(), Doc.english("Not a cons: " + def.name));
-    if (!cons.tele().sizeEquals(u.pats().size()))
-      throw new SPE(u.pos(), Doc.english("Wrong number of arguments: " + u.name()));
     var pats = u.pats().map(p -> pattern(p, cache));
     return new Pat.Con((DefVar<Def.Cons>) def, pats);
   }

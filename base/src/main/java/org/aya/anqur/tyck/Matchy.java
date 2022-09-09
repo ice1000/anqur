@@ -16,11 +16,14 @@ public record Matchy(@NotNull Elaborator elaborator) {
     pats(params, clause.pats());
     return new Pat.Clause<>(clause.pats(), elaborator.inherit(clause.body(), result));
   }
+
   public void pat(@NotNull Pat pat, @NotNull Term type) {
     switch (pat) {
       case Pat.Bind bind -> elaborator.gamma().put(bind.bind(), type);
       case Pat.Con con && type instanceof Term.DataCall data -> {
         var core = con.ref().core;
+        if (!core.tele().sizeEquals(con.pats().size()))
+          throw new RuntimeException("Wrong number of arguments: " + core.name().name);
         var expected = core.owner();
         if (data.fn() != expected) throw new RuntimeException("Expected " + data.fn().name + ", got " + expected.name);
         pats(core.tele(), con.pats());

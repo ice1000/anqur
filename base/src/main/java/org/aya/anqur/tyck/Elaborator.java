@@ -4,7 +4,6 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
-import kala.control.Either;
 import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
@@ -168,6 +167,7 @@ public record Elaborator(
     return switch (def) {
       case Decl.Fn fn -> {
         var result = inherit(fn.result(), Term.U);
+        fn.name().signature = new Def.Signature(false, telescope, result);
         var body = fn.body().map(
           expr -> inherit(expr, result),
           clauses -> new Pat.ClauseSet<>(clauses.getLeftValue().clauses().map(c ->
