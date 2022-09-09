@@ -1,6 +1,9 @@
 package org.aya.anqur.tyck;
 
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableMap;
+import kala.control.Option;
 import org.aya.anqur.syntax.Expr;
 import org.aya.anqur.syntax.Pat;
 import org.aya.anqur.syntax.Term;
@@ -35,5 +38,38 @@ public record Matchy(@NotNull Elaborator elaborator) {
 
   private void pats(ImmutableSeq<Param<Term>> tele, ImmutableSeq<Pat> pats) {
     tele.zipView(pats).forEach(pair -> pat(pair._2, pair._1.type()));
+  }
+
+  public static Option<Normalizer> buildSubst(SeqView<Pat> pat, SeqView<Term> term) {
+    var subst = new Normalizer(MutableMap.create());
+    if (buildSubst(pat, term, subst)) return Option.some(subst);
+    else return Option.none();
+  }
+
+  private static boolean buildSubst(Pat pat, Term term, Normalizer subst) {
+    return switch (pat) {
+      case Pat.Bind bind -> {
+        subst.rho().put(bind.bind(), term);
+        yield true;
+      }
+      case Pat.Con con && term instanceof Term.ConCall call -> {
+        if (con.ref() != con.ref()) yield false;
+        yield buildSubst(con.pats().view(), call.args().view(), subst);
+      }
+      case default -> false;
+    };
+  }
+
+  private static boolean buildSubst(SeqView<Pat> pats, SeqView<Term> args, Normalizer subst) {
+    return pats.zipView(args).allMatch(pair -> buildSubst(pair._1, pair._2, subst));
+  }
+
+  public static Option<Term> unfold(Pat.ClauseSet<Term> clauses, ImmutableSeq<Term> args) {
+    assert clauses.clauses().size() == args.size();
+    for (var cls : clauses.clauses()) {
+      var subst = buildSubst(cls.pats().view(), args.view());
+      if (subst.isDefined()) return Option.some(subst.get().term(cls.body()));
+    }
+    return Option.none();
   }
 }
