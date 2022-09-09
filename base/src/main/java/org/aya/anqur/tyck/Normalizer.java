@@ -40,10 +40,12 @@ public record Normalizer(@NotNull MutableMap<LocalVar, Term> rho) {
         yield proj.isOne() ? tup.f() : tup.a();
       }
       case Term.FnCall call -> {
-        // TODO: fn can be null
         var fn = call.fn().core;
+        if (fn == null || fn.body().isRight()) yield new Term.FnCall(call.fn(), call.args().map(this::term));
         fn.telescope().zip(call.args()).forEach(zip -> rho.put(zip._1.x(), term(zip._2)));
-        yield term(fn.body());
+        var bud = term(fn.body().getLeftValue());
+        fn.teleVars().forEach(rho::remove);
+        yield bud;
       }
       case Term.ConCall conCall -> new Term.ConCall(conCall.fn(),
         conCall.args().map(this::term), conCall.dataArgs().map(this::term));

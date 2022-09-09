@@ -1,6 +1,7 @@
 package org.aya.anqur.syntax;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.control.Either;
 import org.aya.anqur.util.Param;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,12 +12,14 @@ public sealed interface Def extends FnLike {
     @Override @NotNull DefVar<Fn> name,
     @Override @NotNull ImmutableSeq<Param<Term>> telescope,
     @NotNull Term result,
-    @NotNull Term body
+    @NotNull Either<Term, ClauseSet> body
   ) implements Def {
     public Fn {
       name.core = this;
     }
   }
+
+  record ClauseSet(@NotNull ImmutableSeq<Pat.Clause<Term>> clauses) {}
 
   /**
    * For (maybe mutually) recursive definitions, like types and functions

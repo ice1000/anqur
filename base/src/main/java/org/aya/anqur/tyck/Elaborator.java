@@ -4,6 +4,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
+import kala.control.Either;
 import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
@@ -104,7 +105,7 @@ public record Elaborator(
           var pi = Term.mkPi(def.telescope(), def.result());
           yield switch (def) {
             case Def.Fn fn -> new Synth(Normalizer.rename(Term.mkLam(
-              fn.teleVars(), fn.body())), pi);
+              fn.teleVars(), new Term.FnCall(fn.name(), fn.teleRefs().toImmutableSeq()))), pi);
             case Def.Print print -> throw new AssertionError("unreachable: " + print);
             case Def.Cons cons -> new Synth(Normalizer.rename(Term.mkLam(
               cons.teleVars(), new Term.ConCall(cons.name(),
@@ -169,7 +170,7 @@ public record Elaborator(
         var result = inherit(fn.result(), Term.U);
         var body = inherit(fn.body(), result);
         telescope.forEach(key -> gamma.remove(key.x()));
-        yield new Def.Fn(fn.name(), telescope, result, body);
+        yield new Def.Fn(fn.name(), telescope, result, Either.left(body));
       }
       case Decl.Print print -> {
         var result = inherit(print.result(), Term.U);
