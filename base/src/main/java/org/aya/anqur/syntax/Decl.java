@@ -1,6 +1,7 @@
 package org.aya.anqur.syntax;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.control.Either;
 import org.aya.anqur.util.Param;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +17,7 @@ public sealed interface Decl {
     @Override @NotNull DefVar<Def.Fn> name,
     @Override @NotNull Tele tele,
     @NotNull Expr result,
-    @NotNull Expr body
+    @NotNull Either<Expr, Either<Pat.ClauseSet<Expr>, ImmutableSeq<Pat.UnresolvedClause>>> body
   ) implements Decl {}
   record Print(
     @Override @NotNull Tele tele,

@@ -1,8 +1,8 @@
 package org.aya.anqur.tyck;
 
-import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableMap;
+import kala.control.Either;
 import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
@@ -42,9 +42,12 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
         var tele = tele(def);
         put(fn.name());
         var result = expr(fn.result());
-        var body = expr(fn.body());
+        // For javac type inference
+        var resolved = new Decl.Fn(fn.name(), tele._1, result, fn.body().map(
+          this::expr, clauses ->
+            Either.left(new Pat.ClauseSet<>(clauses.getRightValue().map(this::clause)))));
         tele._2.purge();
-        yield new Decl.Fn(fn.name(), tele._1, result, body);
+        yield resolved;
       }
       case Decl.Print print -> {
         var tele = tele(def);
@@ -109,15 +112,15 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
     return env.put(x.name(), x);
   }
 
-  public @NotNull Pat.Clause<Expr> clause(@NotNull ImmutableSeq<Pat.Unresolved> unsols, @NotNull Expr body) {
+  public @NotNull Pat.Clause<Expr> clause(@NotNull Pat.UnresolvedClause c) {
     var tele = mkCache(16);
-    var pats = unsols.map(pat -> pattern(pat, tele));
-    body = expr(body);
+    var pats = c.unsols().map(pat -> pattern(pat, tele));
+    var body = expr(c.body());
     tele.purge();
     return new Pat.Clause<>(pats, body);
   }
 
-  private static @NotNull Pat pattern(@NotNull Pat.Unresolved u, @NotNull TeleCache cache) {
+  @SuppressWarnings("unchecked") private static @NotNull Pat pattern(@NotNull Pat.Unresolved u, @NotNull TeleCache cache) {
     var var = cache.ctx.env.getOrNull(u.name());
     if (var == null && u.pats().isEmpty()) {
       var v = new LocalVar(u.name());

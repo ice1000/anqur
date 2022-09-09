@@ -12,4 +12,6 @@ public sealed interface Pat {
   record Con(@NotNull DefVar<Def.Cons> ref, @NotNull ImmutableSeq<Pat> pats) implements Pat {}
 
   record Clause<T>(@NotNull ImmutableSeq<Pat> pats, @NotNull T body) {}
+  record ClauseSet<Term>(@NotNull ImmutableSeq<Clause<Term>> clauses) {}
+  record UnresolvedClause(@NotNull ImmutableSeq<Pat.Unresolved> unsols, @NotNull Expr body) {}
 }

@@ -168,9 +168,13 @@ public record Elaborator(
     return switch (def) {
       case Decl.Fn fn -> {
         var result = inherit(fn.result(), Term.U);
-        var body = inherit(fn.body(), result);
+        var body = fn.body().map(
+          expr -> inherit(expr, result),
+          clauses -> new Pat.ClauseSet<>(clauses.getLeftValue().clauses().map(c ->
+            new Matchy(this).clause(telescope, result, c)))
+        );
         telescope.forEach(key -> gamma.remove(key.x()));
-        yield new Def.Fn(fn.name(), telescope, result, Either.left(body));
+        yield new Def.Fn(fn.name(), telescope, result, body);
       }
       case Decl.Print print -> {
         var result = inherit(print.result(), Term.U);

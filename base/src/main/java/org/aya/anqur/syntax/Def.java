@@ -12,14 +12,12 @@ public sealed interface Def extends FnLike {
     @Override @NotNull DefVar<Fn> name,
     @Override @NotNull ImmutableSeq<Param<Term>> telescope,
     @NotNull Term result,
-    @NotNull Either<Term, ClauseSet> body
+    @NotNull Either<Term, Pat.ClauseSet<Term>> body
   ) implements Def {
     public Fn {
       name.core = this;
     }
   }
-
-  record ClauseSet(@NotNull ImmutableSeq<Pat.Clause<Term>> clauses) {}
 
   /**
    * For (maybe mutually) recursive definitions, like types and functions

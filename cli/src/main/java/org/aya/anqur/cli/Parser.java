@@ -3,12 +3,10 @@ package org.aya.anqur.cli;
 import kala.collection.Seq;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import kala.control.Either;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.aya.anqur.parser.AnqurParser;
-import org.aya.anqur.syntax.Decl;
-import org.aya.anqur.syntax.DefVar;
-import org.aya.anqur.syntax.Expr;
-import org.aya.anqur.syntax.Keyword;
+import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.aya.repl.antlr.AntlrUtil;
@@ -16,6 +14,8 @@ import org.aya.util.error.SourceFile;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public record Parser(@NotNull SourceFile source) {
   public @NotNull Expr expr(@NotNull AnqurParser.ExprContext expr) {
@@ -60,8 +60,23 @@ public record Parser(@NotNull SourceFile source) {
     };
   }
 
-  private Expr fnBody(AnqurParser.FnBodyContext fnBody) {
-    return expr(fnBody.expr());
+  private <U> Either<Expr, Either<U, ImmutableSeq<Pat.UnresolvedClause>>> fnBody(AnqurParser.FnBodyContext fnBody) {
+    var expr = fnBody.expr();
+    if (expr != null) return Either.left(expr(expr));
+    return Either.right(Either.right(
+      Seq.wrapJava(fnBody.clause()).map(this::clause)));
+  }
+
+  private Pat.UnresolvedClause clause(AnqurParser.ClauseContext cls) {
+    return new Pat.UnresolvedClause(pats(cls.pattern()), expr(cls.expr()));
+  }
+
+  private ImmutableSeq<Pat.Unresolved> pats(List<AnqurParser.PatternContext> patterns) {
+    return Seq.wrapJava(patterns).map(this::pat);
+  }
+
+  private Pat.Unresolved pat(AnqurParser.PatternContext pat) {
+    return new Pat.Unresolved(sourcePosOf(pat), pat.ID().getText(), pats(pat.pattern()));
   }
 
   private Decl.Cons cons(AnqurParser.ConsDeclContext consDeclContext) {
