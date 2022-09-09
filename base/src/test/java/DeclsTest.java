@@ -17,7 +17,7 @@ public class DeclsTest {
       """);
     akJr.sigma().valuesView().forEach(tycked -> {
       var body = ((Def.Fn) tycked).body();
-      assertTrue(akJr.normalize(body) instanceof Term.Two two && two.isApp());
+      assertTrue(akJr.normalize(body.getLeftValue()) instanceof Term.Two two && two.isApp());
     });
   }
 
@@ -47,6 +47,18 @@ public class DeclsTest {
 
       def lengthTwo (A : U) (a : A) : List A => cons A a (cons A a (nil A))
       print : List Nat => lengthTwo Nat two
+      """);
+  }
+
+  @Test public void patternMatchingNat() {
+    tyck("""
+      data Nat
+      | zero
+      | succ (n : Nat)
+
+      def plus (a : Nat) (b : Nat) : Nat
+      | zero b => b
+      | (succ a) b => succ (plus a b)
       """);
   }
 
