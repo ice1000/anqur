@@ -76,6 +76,7 @@ public interface Distiller {
   private static @NotNull Doc call(Prec envPrec, SeqView<Term> args, DefVar<?> name) {
     var doc = Doc.sep(args
       .map(t -> term(t, AppSpine)).prepended(Doc.plain(name.name)));
+    if (args.isEmpty()) return doc;
     return envPrec.ordinal() > AppHead.ordinal() ? Doc.parened(doc) : doc;
   }
 }
