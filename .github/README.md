@@ -14,6 +14,22 @@ I will also be testing ideas on induction-recursion and induction-induction of s
 
 ## v0.3
 
+![image](https://user-images.githubusercontent.com/16398479/189470948-626d6669-bfb5-4da5-a079-a15ea605213d.png)
+
+Implements unfold properly. The following code (with the old code):
+
+```
+print : Nat => plus two two
+```
+
+Prints
+
+```
+succ (succ (succ (succ (zero))))
+```
+
+Awesome. Total lines of Java code (excluding blank/comments): 864
+
 ## v0.2
 
 ![image](https://user-images.githubusercontent.com/16398479/188980798-baebf9ad-ebb0-444d-9f48-080920b3182a.png)
