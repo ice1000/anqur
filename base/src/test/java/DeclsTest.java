@@ -60,7 +60,10 @@ public class DeclsTest {
       | zero b => b
       | (succ a) b => succ (plus a b)
 
-      print : Nat => plus two two
+      def two : Nat => succ (succ zero)
+      def four : Nat => plus two two
+      def six : Nat => plus four two
+      print : Nat => six
       """);
   }
 
