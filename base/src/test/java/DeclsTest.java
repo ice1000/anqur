@@ -59,6 +59,8 @@ public class DeclsTest {
       def plus (a : Nat) (b : Nat) : Nat
       | zero b => b
       | (succ a) b => succ (plus a b)
+
+      print : Nat => plus two two
       """);
   }
 
