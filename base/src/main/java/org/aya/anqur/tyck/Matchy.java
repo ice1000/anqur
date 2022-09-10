@@ -42,8 +42,7 @@ public record Matchy(@NotNull Elaborator elaborator) {
 
   public static Option<Normalizer> buildSubst(SeqView<Pat> pat, SeqView<Term> term) {
     var subst = new Normalizer(MutableMap.create());
-    if (buildSubst(pat, term, subst)) return Option.some(subst);
-    else return Option.none();
+    return buildSubst(pat, term, subst) ? Option.some(subst) : Option.none();
   }
 
   private static boolean buildSubst(Pat pat, Term term, Normalizer subst) {
@@ -53,7 +52,7 @@ public record Matchy(@NotNull Elaborator elaborator) {
         yield true;
       }
       case Pat.Con con && term instanceof Term.ConCall call -> {
-        if (con.ref() != con.ref()) yield false;
+        if (con.ref() != call.fn()) yield false;
         yield buildSubst(con.pats().view(), call.args().view(), subst);
       }
       case default -> false;
@@ -65,7 +64,6 @@ public record Matchy(@NotNull Elaborator elaborator) {
   }
 
   public static Option<Term> unfold(Pat.ClauseSet<Term> clauses, ImmutableSeq<Term> args) {
-    assert clauses.clauses().size() == args.size();
     for (var cls : clauses.clauses()) {
       var subst = buildSubst(cls.pats().view(), args.view());
       if (subst.isDefined()) return Option.some(subst.get().term(cls.body()));

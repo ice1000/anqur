@@ -45,7 +45,7 @@ public record Normalizer(@NotNull MutableMap<LocalVar, Term> rho) {
         if (fn == null) yield new Term.FnCall(call.fn(), args);
         fn.teleVars().zip(args).forEach(rho::put);
         var bud = fn.body().fold(this::term, cls ->
-          Matchy.unfold(cls, args).getOrElse(() -> new Term.FnCall(call.fn(), args)));
+          Matchy.unfold(cls, args).map(this::term).getOrElse(() -> new Term.FnCall(call.fn(), args)));
         fn.teleVars().forEach(rho::remove);
         yield bud;
       }
