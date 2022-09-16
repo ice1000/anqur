@@ -16,6 +16,21 @@ I will also be testing ideas on induction-recursion and induction-induction of s
 
 ![image](https://user-images.githubusercontent.com/16398479/190531305-e6eadceb-b402-4544-8404-7de292c78e36.png)
 
+Implemented a coverage checker. The following code:
+
+```
+def plus-bad (a : Nat) (b : Nat) : Nat
+| (succ a) b => succ (plus a b)
+```
+
+Will cause:
+
+```
+Missing pattern >:)
+```
+
+It is too difficult to implement proper error reporting, so I'll leave it to readers :) in case you are really curious, you may check out the coverage checker in Aya.
+
 ## v0.3
 
 ![image](https://user-images.githubusercontent.com/16398479/189470948-626d6669-bfb5-4da5-a079-a15ea605213d.png)
