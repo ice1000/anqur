@@ -12,6 +12,10 @@ This project is evolved from [Guest0x0] with cubical features removed. It serves
 
 I will also be testing ideas on induction-recursion and induction-induction of simpler indexed types in this project.
 
+## v0.4
+
+![image](https://user-images.githubusercontent.com/16398479/190531305-e6eadceb-b402-4544-8404-7de292c78e36.png)
+
 ## v0.3
 
 ![image](https://user-images.githubusercontent.com/16398479/189470948-626d6669-bfb5-4da5-a079-a15ea605213d.png)
