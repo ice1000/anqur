@@ -170,8 +170,7 @@ public record Elaborator(
         fn.name().signature = new Def.Signature(false, telescope, result);
         var body = fn.body().map(
           expr -> inherit(expr, result),
-          clauses -> new Pat.ClauseSet<>(clauses.getLeftValue().clauses().map(c ->
-            new Matchy(this).clause(telescope, result, c)))
+          clauses -> tyckFunBody(telescope, result, clauses.getLeftValue())
         );
         telescope.forEach(key -> gamma.remove(key.x()));
         yield new Def.Fn(fn.name(), telescope, result, body);
@@ -182,13 +181,23 @@ public record Elaborator(
         telescope.forEach(key -> gamma.remove(key.x()));
         yield new Def.Print(telescope, result, body);
       }
-      case Decl.Cons cons -> throw new IllegalArgumentException("unreachable");
+      case Decl.Cons ignored -> throw new IllegalArgumentException("unreachable");
       case Decl.Data data -> {
         var ref = data.name();
         ref.signature = new Def.Signature(true, telescope, Term.U);
         yield new Def.Data(ref, telescope, data.cons().map(c -> cons(ref, c)));
       }
     };
+  }
+
+  private Pat.ClauseSet<Term> tyckFunBody(
+    ImmutableSeq<Param<Term>> telescope, Term result,
+    Pat.ClauseSet<Expr> clauseSet
+  ) {
+    var clauses = new Pat.ClauseSet<>(clauseSet.clauses().map(c ->
+      new Matchy(this).clause(telescope, result, c)));
+    Classifier.classify(clauses, telescope);
+    return clauses;
   }
 
   private Def.Cons cons(DefVar<Def.Data> ref, Decl.Cons c) {

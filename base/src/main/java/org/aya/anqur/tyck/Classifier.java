@@ -1,5 +1,6 @@
 package org.aya.anqur.tyck;
 
+import kala.collection.SeqLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
@@ -16,6 +17,28 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BiFunction;
 
 public interface Classifier {
+  static @NotNull MCT<Term, Doc> classify(
+    @NotNull Pat.ClauseSet<Term> clauses,
+    @NotNull ImmutableSeq<Param<Term>> telescope
+  ) {
+    return classify(clauses.clauses(), telescope);
+  }
+
+  static @NotNull MCT<Term, Doc> classify(
+    @NotNull SeqLike<Pat.Clause<Term>> clauses,
+    @NotNull ImmutableSeq<Param<Term>> telescope
+  ) {
+    var classification = classify(telescope.view(), 5, clauses.view()
+      .mapIndexed((index, clause) -> new MCT.SubPats<>(clause.pats().view(), index))
+      .toImmutableSeq());
+    classification.forEach(pats -> {
+      if (pats instanceof MCT.Error<Term, Doc> error) {
+        throw new RuntimeException(error.errorMessage().commonRender());
+      }
+    });
+    return classification;
+  }
+
   /**
    * @param telescope type signature, assumed to be well-typed
    *                  (so like, no data constructors can possibly be here)
@@ -27,7 +50,7 @@ public interface Classifier {
    */
   private static @Nullable MCT<Term, Doc> classifyImpl(SeqView<Param<Term>> telescope, int fuel, ImmutableSeq<MCT.SubPats<Pat>> clauses) {
     var ty = telescope.first();
-    // Make sure this is NF!!
+    // Make sure this is WHNF!!
     switch (ty.type()) {
       case Term.DataCall dataCall -> {
         // If there are no remaining clauses, probably it's due to a previous `impossible` clause,
