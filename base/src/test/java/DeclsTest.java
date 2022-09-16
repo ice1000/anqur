@@ -6,6 +6,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DeclsTest {
@@ -65,6 +66,16 @@ public class DeclsTest {
       def six : Nat => plus four two
       print : Nat => six
       """);
+  }
+
+  @Test public void coverageNat() {
+    assertThrowsExactly(RuntimeException.class, () -> tyck("""
+      data Nat
+      | zero
+      | succ (n : Nat)
+      def plus-bad (a : Nat) (b : Nat) : Nat
+      | (succ a) b => succ (plus-bad a b)
+      """));
   }
 
   private static @NotNull Elaborator tyck(@Language("TEXT") String s) {
