@@ -43,35 +43,35 @@ public record Resolver(@NotNull MutableMap<String, AnyVar> env) {
         put(fn.name());
         var result = expr(fn.result());
         // For javac type inference
-        var resolved = new Decl.Fn(fn.name(), tele._1, result, fn.body().map(
+        var resolved = new Decl.Fn(fn.name(), tele.component1(), result, fn.body().map(
           this::expr, clauses ->
             Either.left(new Pat.ClauseSet<>(clauses.getRightValue().map(this::clause)))));
-        tele._2.purge();
+        tele.component2().purge();
         yield resolved;
       }
       case Decl.Print print -> {
         var tele = tele(def);
         var body = expr(print.body());
         var result = expr(print.result());
-        tele._2.purge();
-        yield new Decl.Print(tele._1, result, body);
+        tele.component2().purge();
+        yield new Decl.Print(tele.component1(), result, body);
       }
       case Decl.Cons cons -> cons(cons);
       case Decl.Data data -> {
         var tele = tele(def);
         put(def.name());
         var cons = data.cons().map(this::cons);
-        tele._2.purge();
-        yield new Decl.Data(data.name(), tele._1, cons);
+        tele.component2().purge();
+        yield new Decl.Data(data.name(), tele.component1(), cons);
       }
     };
   }
 
   private @NotNull Decl.Cons cons(Decl.Cons cons) {
     var tele = tele(cons);
-    tele._2.purge();
+    tele.component2().purge();
     put(cons.name());
-    return new Decl.Cons(cons.name(), tele._1);
+    return new Decl.Cons(cons.name(), tele.component1());
   }
 
   @NotNull private Tuple2<Decl.Tele, TeleCache> tele(Decl def) {

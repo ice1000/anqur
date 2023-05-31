@@ -39,7 +39,7 @@ public class Unifier {
   }
 
   private boolean unifySeq(@NotNull ImmutableSeq<Term> l, @NotNull ImmutableSeq<Term> r) {
-    return l.zipView(r).allMatch(p -> untyped(p._1, p._2));
+    return l.allMatchWith(r, this::untyped);
   }
 
   private boolean eta(@NotNull Term r, Term.Lam lam) {

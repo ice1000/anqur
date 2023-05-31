@@ -19,5 +19,4 @@ val genVer = tasks.register<GenerateVersionTask>("genVer") {
   basePackage = "org.aya.anqur"
   outputDir = file(genDir).resolve("org/aya/anqur/prelude")
 }
-@Suppress("unsupported")
-[tasks.sourcesJar, tasks.compileJava].forEach { it.configure { dependsOn(genVer) } }
+listOf(tasks.sourcesJar, tasks.compileJava).forEach { it.configure { dependsOn(genVer) } }

@@ -12,7 +12,7 @@ public class SPE extends RuntimeException {
   public final @NotNull SourcePos pos;
 
   public SPE(@NotNull SourcePos pos, @NotNull Doc message) {
-    super("\n" + message.renderWithPageWidth(80, false) + "\nSource pos: " +
+    super("\n" + message.renderToString(80, false) + "\nSource pos: " +
       pos.toSpan().normalize(PrettyErrorConfig.DEFAULT));
     this.pos = pos;
   }

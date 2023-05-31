@@ -37,7 +37,7 @@ public record Matchy(@NotNull Elaborator elaborator) {
   }
 
   private void pats(ImmutableSeq<Param<Term>> tele, ImmutableSeq<Pat> pats) {
-    tele.zipView(pats).forEach(pair -> pat(pair._2, pair._1.type()));
+    tele.forEachWith(pats, (ty, pat) -> pat(pat, ty.type()));
   }
 
   public static Option<Normalizer> buildSubst(SeqView<Pat> pat, SeqView<Term> term) {
@@ -60,7 +60,7 @@ public record Matchy(@NotNull Elaborator elaborator) {
   }
 
   private static boolean buildSubst(SeqView<Pat> pats, SeqView<Term> args, Normalizer subst) {
-    return pats.zipView(args).allMatch(pair -> buildSubst(pair._1, pair._2, subst));
+    return pats.allMatchWith(args, (pat, arg) -> buildSubst(pat, arg, subst));
   }
 
   public static Option<Term> unfold(Pat.ClauseSet<Term> clauses, ImmutableSeq<Term> args) {
