@@ -5,11 +5,11 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.aya.anqur.parser.AnqurParser;
 import org.aya.anqur.syntax.*;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
-import org.aya.repl.antlr.AntlrUtil;
 import org.aya.util.error.SourceFile;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -30,7 +30,7 @@ public record Parser(@NotNull SourceFile source) {
         yield new Expr.PrimTy(pos, Keyword.U);
       }
       case AnqurParser.LamContext lam -> buildLam(sourcePosOf(lam), Seq.wrapJava(lam.ID()).view()
-        .map(id -> new WithPos<>(AntlrUtil.sourcePosOf(id, source), new LocalVar(id.getText()))), expr(lam.expr()));
+        .map(id -> new WithPos<>(sourcePosOf(id, source), new LocalVar(id.getText()))), expr(lam.expr()));
       case AnqurParser.RefContext ref -> new Expr.Unresolved(sourcePosOf(ref), ref.ID().getText());
       case AnqurParser.PiContext pi -> buildDT(true, sourcePosOf(pi), param(pi.param()), expr(pi.expr()));
       case AnqurParser.SigContext si -> buildDT(false, sourcePosOf(si), param(si.param()), expr(si.expr()));
@@ -89,14 +89,14 @@ public record Parser(@NotNull SourceFile source) {
     if (params.isEmpty()) return body;
     var drop = params.drop(1);
     return new Expr.DT(isPi, pos, params.first(), buildDT(isPi,
-      AntlrUtil.sourcePosForSubExpr(source, drop.map(x -> x.type().pos()), body.pos()), drop, body));
+      sourcePosForSubExpr(source, drop.map(x -> x.type().pos()), body.pos()), drop, body));
   }
 
   private Expr buildLam(SourcePos pos, SeqView<WithPos<LocalVar>> params, Expr body) {
     if (params.isEmpty()) return body;
     var drop = params.drop(1);
     return new Expr.Lam(pos, params.first().data(), buildLam(
-      AntlrUtil.sourcePosForSubExpr(source, drop.map(WithPos::sourcePos), body.pos()), drop, body));
+      sourcePosForSubExpr(source, drop.map(WithPos::sourcePos), body.pos()), drop, body));
   }
 
   private @NotNull Param<Expr> param(AnqurParser.ExprContext paramExpr) {
@@ -110,6 +110,55 @@ public record Parser(@NotNull SourceFile source) {
   }
 
   private @NotNull SourcePos sourcePosOf(ParserRuleContext ctx) {
-    return AntlrUtil.sourcePosOf(ctx, source);
+    return sourcePosOf(ctx, source);
+  }
+
+  static @NotNull SourcePos sourcePosOf(TerminalNode node, SourceFile sourceFile) {
+    var token = node.getSymbol();
+    var line = token.getLine();
+    return new SourcePos(
+      sourceFile,
+      token.getStartIndex(),
+      token.getStopIndex(),
+      line,
+      token.getCharPositionInLine(),
+      line,
+      token.getCharPositionInLine() + token.getText().length() - 1
+    );
+  }
+
+  static @NotNull SourcePos sourcePosOf(ParserRuleContext ctx, SourceFile sourceFile) {
+    var start = ctx.getStart();
+    var end = ctx.getStop();
+    return new SourcePos(
+      sourceFile,
+      start.getStartIndex(),
+      end.getStopIndex(),
+      start.getLine(),
+      start.getCharPositionInLine(),
+      end.getLine(),
+      end.getCharPositionInLine() + end.getText().length() - 1
+    );
+  }
+
+  static @NotNull SourcePos sourcePosForSubExpr(
+    @NotNull SourceFile sourceFile,
+    @NotNull SeqView<SourcePos> params,
+    @NotNull SourcePos bodyPos
+  ) {
+    var restParamSourcePos = params.fold(SourcePos.NONE, (acc, it) -> {
+      if (acc == SourcePos.NONE) return it;
+      return new SourcePos(sourceFile, acc.tokenStartIndex(), it.tokenEndIndex(),
+        acc.startLine(), acc.startColumn(), it.endLine(), it.endColumn());
+    });
+    return new SourcePos(
+      sourceFile,
+      restParamSourcePos.tokenStartIndex(),
+      bodyPos.tokenEndIndex(),
+      restParamSourcePos.startLine(),
+      restParamSourcePos.startColumn(),
+      bodyPos.endLine(),
+      bodyPos.endColumn()
+    );
   }
 }
