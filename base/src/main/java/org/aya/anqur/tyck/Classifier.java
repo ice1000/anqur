@@ -23,9 +23,14 @@ public class Classifier implements ClassifierUtil<Normalizer, Term, Param<Term>,
     @NotNull ImmutableSeq<Param<Term>> telescope
   ) {
     var classifier = new Classifier();
-    // TODO
-    classifier.classifyN(new Normalizer(MutableMap.create()),
-      telescope.view(), clauses.clauses(), 2);
+    var classification = classifier.classifyN(new Normalizer(MutableMap.create()),
+      telescope.view(), clauses.view()
+        .mapIndexed((i, clause) -> new Indexed<>(clause.pats().view(), i))
+        .toImmutableSeq(), 2);
+    var p = classification.partition(c -> c.cls().isEmpty());
+    var missing = p.component1();
+    if (missing.isNotEmpty()) throw new RuntimeException("Missing: " + missing);
+    // return p.component2();
   }
 
   @Override public Param<Term> subst(Normalizer normalizer, Param<Term> termParam) {
