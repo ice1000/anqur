@@ -1,5 +1,6 @@
 package org.aya.anqur.tyck;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
 import org.aya.anqur.syntax.Term;
 import org.aya.anqur.util.LocalVar;
@@ -52,7 +53,12 @@ public record Normalizer(@NotNull MutableMap<LocalVar, Term> rho) {
       case Term.ConCall conCall -> new Term.ConCall(conCall.fn(),
         conCall.args().map(this::term), conCall.dataArgs().map(this::term));
       case Term.DataCall dataCall -> new Term.DataCall(dataCall.fn(), dataCall.args().map(this::term));
+      case Term.Error error -> error;
     };
+  }
+
+  public @NotNull Normalizer derive() {
+    return new Normalizer(MutableMap.from(rho));
   }
 
   record Renamer(MutableMap<LocalVar, LocalVar> map) {
@@ -75,6 +81,7 @@ public record Normalizer(@NotNull MutableMap<LocalVar, Term> rho) {
         case Term.ConCall conCall ->
           new Term.ConCall(conCall.fn(), conCall.args().map(this::term), conCall.dataArgs().map(this::term));
         case Term.DataCall dataCall -> new Term.DataCall(dataCall.fn(), dataCall.args().map(this::term));
+        case Term.Error error -> error;
       };
     }
 
@@ -84,6 +91,10 @@ public record Normalizer(@NotNull MutableMap<LocalVar, Term> rho) {
 
     private Param<Term> param(Param<Term> param) {
       return new Param<>(param(param.x()), term(param.type()));
+    }
+
+    public ImmutableSeq<Param<Term>> params(ImmutableSeq<Param<Term>> params) {
+      return params.map(this::param);
     }
 
     private LocalVar param(LocalVar param) {

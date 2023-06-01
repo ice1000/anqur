@@ -23,9 +23,9 @@ public record Matchy(@NotNull Elaborator elaborator) {
   public void pat(@NotNull Pat pat, @NotNull Term type) {
     switch (pat) {
       case Pat.Bind bind -> elaborator.gamma().put(bind.bind(), type);
-      case Pat.Con con && type instanceof Term.DataCall data -> {
+      case Pat.Con con when type instanceof Term.DataCall data -> {
         var core = con.ref().core;
-        if (!core.tele().sizeEquals(con.pats().size()))
+        if (!core.tele().sizeEquals(con.pats()))
           throw new RuntimeException("Wrong number of arguments: " + core.name().name);
         var expected = core.owner();
         if (data.fn() != expected) throw new RuntimeException("Expected " + data.fn().name + ", got " + expected.name);
@@ -51,7 +51,7 @@ public record Matchy(@NotNull Elaborator elaborator) {
         subst.rho().put(bind.bind(), term);
         yield true;
       }
-      case Pat.Con con && term instanceof Term.ConCall call -> {
+      case Pat.Con con when term instanceof Term.ConCall call -> {
         if (con.ref() != call.fn()) yield false;
         yield buildSubst(con.pats().view(), call.args().view(), subst);
       }

@@ -28,12 +28,12 @@ subprojects {
     plugin("signing")
   }
 
-  val javaVersion = 18
+  val javaVersion = 19
   java {
     withSourcesJar()
     if (hasProperty("release")) withJavadocJar()
-    sourceCompatibility = JavaVersion.VERSION_18
-    targetCompatibility = JavaVersion.VERSION_18
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
     toolchain {
       languageVersion.set(JavaLanguageVersion.of(javaVersion))
     }

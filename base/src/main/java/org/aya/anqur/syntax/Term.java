@@ -22,6 +22,7 @@ public sealed interface Term extends Docile {
     return new Normalizer(map).term(this);
   }
 
+  record Error(@NotNull String msg) implements Term {}
   record Ref(@NotNull LocalVar var) implements Term {}
   record FnCall(@NotNull DefVar<Def.Fn> fn, @NotNull ImmutableSeq<Term> args) implements Term {}
   record DataCall(@NotNull DefVar<Def.Data> fn, @NotNull ImmutableSeq<Term> args) implements Term {}
