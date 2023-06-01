@@ -18,6 +18,14 @@ I will also be testing ideas on induction-recursion and induction-induction of s
 
 Ported latest code from Aya with a new coverage checking algorithm which deals
 with nested pattern matching better.
+Error report is implemented! Thanks to the new coverage checking algorithm,
+it becomes much easier.
+
+The previous example will cause:
+
+```
+Missing: ImmutableVector[(zero, zero), (zero, succ zero), (zero, succ (succ ...))]
+```
 
 ## v0.4
 
