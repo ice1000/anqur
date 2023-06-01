@@ -35,7 +35,7 @@ public record Elaborator(
         else throw new SPE(lam.pos(),
           Doc.english("Expects a right adjoint for"), expr, Doc.plain("got"), type);
       }
-      case Expr.Two two && !two.isApp() -> {
+      case Expr.Two two when !two.isApp() -> {
         if (!(normalize(type) instanceof Term.DT dt) || dt.isPi()) throw new SPE(two.pos(),
           Doc.english("Expects a left adjoint for"), expr, Doc.plain("got"), type);
         var lhs = inherit(two.f(), dt.param().type());

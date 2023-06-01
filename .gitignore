@@ -23,6 +23,4 @@ lombok.config
 imgui.ini
 /diagram.uml
 
-cubes.tex
-cubes.bin
-cube-*.jar
+test.aya

@@ -8,6 +8,7 @@ import kala.collection.mutable.MutableMap;
 import org.aya.anqur.syntax.Def;
 import org.aya.anqur.syntax.Pat;
 import org.aya.anqur.syntax.Term;
+import org.aya.anqur.util.Distiller;
 import org.aya.anqur.util.LocalVar;
 import org.aya.anqur.util.Param;
 import org.aya.util.Arg;
@@ -29,7 +30,8 @@ public class Classifier implements ClassifierUtil<Normalizer, Term, Param<Term>,
         .toImmutableSeq(), 2);
     var p = classification.partition(c -> c.cls().isEmpty());
     var missing = p.component1();
-    if (missing.isNotEmpty()) throw new RuntimeException("Missing: " + missing);
+    if (missing.isNotEmpty()) throw new RuntimeException("Missing: " + missing.map(
+      cl -> Distiller.args(cl.term()).debugRender()));
     // return p.component2();
   }
 

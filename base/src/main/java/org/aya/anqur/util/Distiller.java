@@ -2,11 +2,13 @@ package org.aya.anqur.util;
 
 import kala.collection.Seq;
 import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableSeq;
 import org.aya.anqur.syntax.DefVar;
 import org.aya.anqur.syntax.Expr;
 import org.aya.anqur.syntax.Term;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Docile;
+import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -22,7 +24,7 @@ public interface Distiller {
   static @NotNull Doc expr(@NotNull Expr expr, Prec envPrec) {
     return switch (expr) {
       case Expr.PrimTy u -> Doc.plain(u.keyword().name());
-      case Expr.Two two && two.isApp() -> {
+      case Expr.Two two when two.isApp() -> {
         var inner = Doc.sep(expr(two.f(), AppHead), expr(two.a(), AppSpine));
         yield envPrec.ordinal() > AppHead.ordinal() ? Doc.parened(inner) : inner;
       }
@@ -62,7 +64,7 @@ public interface Distiller {
         yield envPrec.ordinal() > Free.ordinal() ? Doc.parened(doc) : doc;
       }
       case Term.Proj proj -> Doc.cat(term(proj.t(), ProjHead), Doc.plain("." + (proj.isOne() ? 1 : 2)));
-      case Term.Two two && two.isApp() -> {
+      case Term.Two two when two.isApp() -> {
         var inner = Doc.sep(term(two.f(), AppHead), term(two.a(), AppSpine));
         yield envPrec.ordinal() > AppHead.ordinal() ? Doc.parened(inner) : inner;
       }
@@ -71,6 +73,7 @@ public interface Distiller {
       case Term.FnCall fnCall -> call(envPrec, fnCall.args().view(), fnCall.fn());
       case Term.ConCall conCall -> call(envPrec, conCall.args().view(), conCall.fn());
       case Term.DataCall dataCall -> call(envPrec, dataCall.args().view(), dataCall.fn());
+      case Term.Error(var msg) -> Doc.plain(msg);
     };
   }
   private static @NotNull Doc call(Prec envPrec, SeqView<Term> args, DefVar<?> name) {
@@ -78,5 +81,10 @@ public interface Distiller {
       .map(t -> term(t, AppSpine)).prepended(Doc.plain(name.name)));
     if (args.isEmpty()) return doc;
     return envPrec.ordinal() > AppHead.ordinal() ? Doc.parened(doc) : doc;
+  }
+
+  static Doc args(ImmutableSeq<Arg<Term>> args) {
+    return Doc.wrap("(", ")", Doc.commaList(args.map(
+      arg -> term(arg.term(), Free))));
   }
 }
