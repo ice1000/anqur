@@ -12,6 +12,13 @@ This project is evolved from [Guest0x0] with cubical features removed. It serves
 
 I will also be testing ideas on induction-recursion and induction-induction of simpler indexed types in this project.
 
+## v0.5
+
+![image](https://github.com/ice1000/anqur/assets/16398479/8ee97d3b-b622-4925-b3a6-92223f7e0b99)
+
+Ported latest code from Aya with a new coverage checking algorithm which deals
+with nested pattern matching better.
+
 ## v0.4
 
 ![image](https://user-images.githubusercontent.com/16398479/190531305-e6eadceb-b402-4544-8404-7de292c78e36.png)
